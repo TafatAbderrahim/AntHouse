@@ -42,7 +42,7 @@ class _SplashScreenState extends State<SplashScreen>
     final isPhone = size.width < 600;
 
     // Responsive sizing
-    final logoSize = isDesktop ? 440.0 : (isPhone ? 180.0 : 300.0);
+    final logoSize = isDesktop ? 520.0 : (isPhone ? 220.0 : 360.0);
     final titleSize = isDesktop ? 56.0 : (isPhone ? 30.0 : 42.0);
     final subtitleSize = isDesktop ? 18.0 : (isPhone ? 12.0 : 15.0);
     final btnHeight = isDesktop ? 68.0 : (isPhone ? 52.0 : 60.0);
@@ -70,22 +70,29 @@ class _SplashScreenState extends State<SplashScreen>
                   const Spacer(flex: 3),
 
                   // ═══ Ant Mascot – large & crisp ═══
-                  Image.asset(
-                    'assets/images/ant_logo.png',
+                  SizedBox(
                     width: logoSize,
                     height: logoSize,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => Icon(
-                      Icons.precision_manufacturing_rounded,
-                      size: isDesktop ? 120 : 70,
-                      color: Colors.white,
+                    child: ClipRect(
+                      child: Transform.scale(
+                        scale: 2.5,
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => Icon(
+                            Icons.precision_manufacturing_rounded,
+                            size: isDesktop ? 120 : 70,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   SizedBox(height: isDesktop ? 36 : 20),
 
                   // ═══ Brand Name ═══
                   Text(
-                    'ANT BMS',
+                    'ANT HOUSE',
                     style: TextStyle(
                       fontSize: titleSize,
                       fontWeight: FontWeight.w800,
@@ -152,16 +159,24 @@ class _SplashScreenState extends State<SplashScreen>
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Image.asset(
-                        'assets/images/logo_bms_large.png',
-                        width: isDesktop ? 240 : 160,
-                        fit: BoxFit.contain,
-                        errorBuilder: (_, __, ___) => const Text(
-                          'BMS Electric',
-                          style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold),
+                      SizedBox(
+                        width: isDesktop ? 300 : 200,
+                        height: isDesktop ? 100 : 66,
+                        child: ClipRect(
+                          child: Transform.scale(
+                            scale: 2.5,
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => const Text(
+                                'BMS Electric',
+                                style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                          ),
                         ),
                       ),
                     ],

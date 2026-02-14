@@ -130,22 +130,25 @@ class _WarehouseConfigScreenState extends State<WarehouseConfigScreen>
             ),
           ),
           // Right — Stats + Actions
-          Row(
-            children: [
-              _headerStat(Icons.layers_rounded, '${_floors.length}', 'Floors'),
-              const SizedBox(width: 16),
-              _headerStat(Icons.grid_view_rounded, '$totalZones', 'Zones'),
-              const SizedBox(width: 16),
-              _headerStat(Icons.square_foot_rounded, '${totalArea.toInt()}m²', 'Total'),
-              const SizedBox(width: 20),
-              if (_expandedFloorIdx != null)
-                _actionBtn(Icons.arrow_back_rounded, 'Back', () {
-                  setState(() {
-                    _expandedFloorIdx = null;
-                    _selectedZoneId = null;
-                  });
-                }),
-            ],
+          Flexible(
+            child: Wrap(
+              spacing: 16,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _headerStat(Icons.layers_rounded, '${_floors.length}', 'Floors'),
+                _headerStat(Icons.grid_view_rounded, '$totalZones', 'Zones'),
+                _headerStat(Icons.square_foot_rounded, '${totalArea.toInt()}m²', 'Total'),
+                if (_expandedFloorIdx != null)
+                  _actionBtn(Icons.arrow_back_rounded, 'Back', () {
+                    setState(() {
+                      _expandedFloorIdx = null;
+                      _selectedZoneId = null;
+                    });
+                  }),
+              ],
+            ),
           ),
         ],
       ),
@@ -392,19 +395,48 @@ class _WarehouseConfigScreenState extends State<WarehouseConfigScreen>
               borderRadius:
                   const BorderRadius.vertical(top: Radius.circular(16)),
             ),
-            child: Row(
-              children: [
-                Text(
-                  '${floor.name} — ${floor.totalWidthM.toInt()}m × ${floor.totalHeightM.toInt()}m',
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.bold),
-                ),
-                const Spacer(),
-                _viewToggle(0, Icons.grid_view_rounded, 'Layout'),
-                const SizedBox(width: 4),
-                // _viewToggle(1, Icons.list_rounded, 'List'), // Removed as requested
-                _viewToggle(2, Icons.thermostat_rounded, 'Heatmap'),
-              ],
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final narrow = constraints.maxWidth < 640;
+                if (narrow) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        '${floor.name} — ${floor.totalWidthM.toInt()}m × ${floor.totalHeightM.toInt()}m',
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          _viewToggle(0, Icons.grid_view_rounded, 'Layout'),
+                          const SizedBox(width: 4),
+                          _viewToggle(2, Icons.thermostat_rounded, 'Heatmap'),
+                        ],
+                      ),
+                    ],
+                  );
+                }
+                return Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        '${floor.name} — ${floor.totalWidthM.toInt()}m × ${floor.totalHeightM.toInt()}m',
+                        style: const TextStyle(
+                            fontSize: 15, fontWeight: FontWeight.bold),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const Spacer(),
+                    _viewToggle(0, Icons.grid_view_rounded, 'Layout'),
+                    const SizedBox(width: 4),
+                    _viewToggle(2, Icons.thermostat_rounded, 'Heatmap'),
+                  ],
+                );
+              },
             ),
           ),
           // Map canvas
@@ -1985,3 +2017,16 @@ class _ConfigFloorPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _ConfigFloorPainter old) => true;
 }
+
+
+
+
+
+
+
+
+
+
+
+
+

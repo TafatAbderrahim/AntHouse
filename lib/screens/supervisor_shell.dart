@@ -57,9 +57,12 @@ class _SupervisorShellState extends State<SupervisorShell> {
                             icon: const Icon(Icons.menu),
                           ),
                         ),
-                      Text(
-                        _labels[_index],
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                      Flexible(
+                        child: Text(
+                          _labels[_index],
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const Spacer(),
                       Container(
@@ -92,7 +95,7 @@ class _SupervisorShellState extends State<SupervisorShell> {
       children: [
         const SizedBox(height: 16),
         const ListTile(
-          title: Text('ANT BMS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+          title: Text('ANT HOUSE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
           subtitle: Text('Supervisor Panel', style: TextStyle(color: Colors.white70)),
         ),
         const Divider(color: Colors.white24),

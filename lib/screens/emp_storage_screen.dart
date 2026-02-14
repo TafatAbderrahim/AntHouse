@@ -166,7 +166,7 @@ class _EmpStorageScreenState extends State<EmpStorageScreen> {
                           children: [
                             const Icon(Icons.location_on_rounded, size: 14, color: AppColors.error),
                             const SizedBox(width: 4),
-                            Text(task.fromLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            Flexible(child: Text(task.fromLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
                           ],
                         ),
                       ],

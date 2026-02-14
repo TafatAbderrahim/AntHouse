@@ -169,7 +169,7 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
                           children: [
                             const Icon(Icons.shelves, size: 14, color: Color(0xFF6A1B9A)),
                             const SizedBox(width: 4),
-                            Text(task.fromLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            Flexible(child: Text(task.fromLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
                           ],
                         ),
                       ],
@@ -189,7 +189,7 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
                           children: [
                             const Icon(Icons.local_shipping_rounded, size: 14, color: AppColors.success),
                             const SizedBox(width: 4),
-                            Text(task.toLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                            Flexible(child: Text(task.toLocation, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis)),
                           ],
                         ),
                       ],

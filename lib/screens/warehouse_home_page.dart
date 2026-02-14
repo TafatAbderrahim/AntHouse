@@ -191,26 +191,38 @@ class _WarehouseHomePageState extends State<WarehouseHomePage>
       ),
       title: Row(
         children: [
-          Image.asset(
-            'assets/images/logo_bms_small.png',
-            height: 22,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          SizedBox(
+            height: 30,
+            width: 30,
+            child: ClipRect(
+              child: Transform.scale(
+                scale: 2.5,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
           ),
           const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text('ANT BMS',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white)),
-              Text(
-                '${widget.currentEmployee.name} • ${widget.currentEmployee.role.label}',
-                style: const TextStyle(fontSize: 11, color: Colors.white70),
-              ),
-            ],
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('ANT HOUSE',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white),
+                    overflow: TextOverflow.ellipsis),
+                Text(
+                  '${widget.currentEmployee.name} • ${widget.currentEmployee.role.label}',
+                  style: const TextStyle(fontSize: 11, color: Colors.white70),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

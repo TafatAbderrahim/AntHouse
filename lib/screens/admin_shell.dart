@@ -134,12 +134,15 @@ class _AdminShellState extends State<AdminShell> {
             ),
           ),
           SizedBox(width: isPhone ? 4 : 8),
-          Text(
-            titles[_selectedIndex],
-            style: TextStyle(
-              fontSize: titleSize,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textDark,
+          Flexible(
+            child: Text(
+              titles[_selectedIndex],
+              style: TextStyle(
+                fontSize: titleSize,
+                fontWeight: FontWeight.w700,
+                color: AppColors.textDark,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const Spacer(),
@@ -222,34 +225,17 @@ class _AdminShellState extends State<AdminShell> {
         children: [
           _buildSidebarHeader(),
           const SizedBox(height: 8),
-          ...List.generate(_navItems.length, (i) => _buildSidebarItem(i)),
-          const Spacer(),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: List.generate(_navItems.length, (i) => _buildSidebarItem(i)),
+            ),
+          ),
           const Divider(
               color: Colors.white24, height: 1, indent: 16, endIndent: 16),
           _buildSidebarItem(8, icon: Icons.person_rounded, label: 'Profile'),
           _buildSidebarLogout(),
           // BMS Sponsor - BIG
-          Padding(
-            padding: const EdgeInsets.only(bottom: 24),
-            child: Column(
-              children: [
-                const Text('Sponsored by',
-                    style: TextStyle(
-                        color: Colors.white54,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(height: 8),
-                Image.asset('assets/images/logo_bms_large.png',
-                    width: 140,
-                    fit: BoxFit.contain,
-                    errorBuilder: (_, __, ___) => const Text('BMS Electric',
-                        style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold))),
-              ],
-            ),
-          ),
           const SizedBox(height: 16),
         ],
       ),
@@ -262,29 +248,34 @@ class _AdminShellState extends State<AdminShell> {
       child: Row(
         children: [
           Container(
-            width: 74,
-            height: 74,
+            width: 88,
+            height: 88,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.10),
               borderRadius: BorderRadius.circular(18),
               border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
             ),
-            padding: const EdgeInsets.all(8),
-            child: Image.asset(
-              'assets/images/ant_logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.warehouse, color: Colors.white, size: 34),
+            padding: const EdgeInsets.all(10),
+            child: ClipRect(
+              child: Transform.scale(
+                scale: 2.5,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.warehouse, color: Colors.white, size: 34),
+                ),
+              ),
             ),
           ),
           const SizedBox(width: 12),
           const Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('ANT BMS',
+              Text('ANT HOUSE',
                   style: TextStyle(
                       color: Colors.white,
-                      fontSize: 25,
+                      fontSize: 20,
                       fontWeight: FontWeight.w500,
                       letterSpacing: 0.5)),
               SizedBox(height: 2),
@@ -370,48 +361,57 @@ class _AdminShellState extends State<AdminShell> {
         children: [
           const SizedBox(height: 16),
           Container(
-            width: 62,
-            height: 62,
+            width: 74,
+            height: 74,
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
             ),
-            padding: const EdgeInsets.all(8),
-            child: Image.asset(
-              'assets/images/ant_logo.png',
-              fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.warehouse, color: Colors.white, size: 28),
+            padding: const EdgeInsets.all(9),
+            child: ClipRect(
+              child: Transform.scale(
+                scale: 2.5,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) =>
+                      const Icon(Icons.warehouse, color: Colors.white, size: 28),
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          ...List.generate(_navItems.length, (i) {
-            final isActive = _selectedIndex == i;
-            return Tooltip(
-              message: _navItems[i].label,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(vertical: 3),
-                child: Material(
-                  color:
-                      isActive ? AppColors.sidebarHover : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(12),
-                    onTap: () => _goTo(i),
-                    child: SizedBox(
-                      width: 52,
-                      height: 48,
-                      child: Icon(_navItems[i].icon,
-                          size: 24,
-                          color: isActive ? Colors.white : Colors.white60),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: List.generate(_navItems.length, (i) {
+                final isActive = _selectedIndex == i;
+                return Tooltip(
+                  message: _navItems[i].label,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 3),
+                    child: Material(
+                      color:
+                          isActive ? AppColors.sidebarHover : Colors.transparent,
+                      borderRadius: BorderRadius.circular(12),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () => _goTo(i),
+                        child: SizedBox(
+                          width: 52,
+                          height: 48,
+                          child: Icon(_navItems[i].icon,
+                              size: 24,
+                              color: isActive ? Colors.white : Colors.white60),
+                        ),
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          }),
-          const Spacer(),
+                );
+              }),
+            ),
+          ),
           Tooltip(
             message: 'Profile',
             child: IconButton(
@@ -448,8 +448,12 @@ class _AdminShellState extends State<AdminShell> {
           children: [
             _buildSidebarHeader(),
             const SizedBox(height: 8),
-            ...List.generate(_navItems.length, (i) => _buildSidebarItem(i)),
-            const Spacer(),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: List.generate(_navItems.length, (i) => _buildSidebarItem(i)),
+              ),
+            ),
             const Divider(
                 color: Colors.white24, height: 1, indent: 16, endIndent: 16),
             _buildSidebarItem(8, icon: Icons.person_rounded, label: 'Profile'),

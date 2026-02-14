@@ -180,27 +180,32 @@ class _LoginScreenState extends State<LoginScreen>
                 children: [
                   // Ant mascot – BIG 400px
                   Container(
-                    width: 340,
-                    height: 340,
+                    width: 400,
+                    height: 400,
                     decoration: BoxDecoration(
                       color: Colors.white.withValues(alpha: 0.10),
                       borderRadius: BorderRadius.circular(26),
                       border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
                     ),
                     padding: const EdgeInsets.all(22),
-                    child: Image.asset(
-                      'assets/images/ant_logo.png',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => const Icon(
-                        Icons.warehouse_rounded,
-                        size: 160,
-                        color: Colors.white54,
+                    child: ClipRect(
+                      child: Transform.scale(
+                        scale: 2.5,
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, __, ___) => const Icon(
+                            Icons.warehouse_rounded,
+                            size: 160,
+                            color: Colors.white54,
+                          ),
+                        ),
                       ),
                     ),
                   ),
                   const SizedBox(height: 28),
                   const Text(
-                    'ANT BMS',
+                    'ANT HOUSE',
                     style: TextStyle(
                       fontSize: 52,
                       fontWeight: FontWeight.w500,
@@ -257,7 +262,7 @@ class _LoginScreenState extends State<LoginScreen>
   // ═══════════════════ MOBILE / TABLET ═══════════════════
 
   Widget _buildMobileLayout(bool isPhone) {
-    final logoSize = isPhone ? 100.0 : 140.0;
+    final logoSize = isPhone ? 130.0 : 170.0;
     final cardPadding = isPhone ? 24.0 : 40.0;
 
     return Column(
@@ -273,19 +278,24 @@ class _LoginScreenState extends State<LoginScreen>
             border: Border.all(color: Colors.white.withValues(alpha: 0.18)),
           ),
           padding: const EdgeInsets.all(14),
-          child: Image.asset(
-            'assets/images/ant_logo.png',
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(
-              Icons.warehouse_rounded,
-              size: isPhone ? 50 : 60,
-              color: Colors.white54,
+          child: ClipRect(
+            child: Transform.scale(
+              scale: 2.5,
+              child: Image.asset(
+                'assets/images/logo.png',
+                fit: BoxFit.contain,
+                errorBuilder: (_, __, ___) => Icon(
+                  Icons.warehouse_rounded,
+                  size: isPhone ? 50 : 60,
+                  color: Colors.white54,
+                ),
+              ),
             ),
           ),
         ),
         SizedBox(height: isPhone ? 12 : 16),
         Text(
-          'ANT BMS',
+          'ANT HOUSE',
           style: TextStyle(
             fontSize: isPhone ? 32 : 40,
             fontWeight: FontWeight.w700,
@@ -572,12 +582,19 @@ class _LoginScreenState extends State<LoginScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Image.asset(
-            'assets/images/logo_bms_small.png',
-            width: isPhone ? 24 : 36,
-            height: isPhone ? 24 : 36,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+          SizedBox(
+            width: isPhone ? 30 : 44,
+            height: isPhone ? 30 : 44,
+            child: ClipRect(
+              child: Transform.scale(
+                scale: 2.5,
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                ),
+              ),
+            ),
           ),
           SizedBox(width: isPhone ? 6 : 10),
           Column(

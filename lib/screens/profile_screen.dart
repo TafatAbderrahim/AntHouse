@@ -233,7 +233,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         Icon(icon, size: 16, color: AppColors.textLight),
         const SizedBox(width: 10),
         SizedBox(width: 120, child: Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textLight))),
-        Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color ?? AppColors.textDark)),
+        Expanded(child: Text(value, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: color ?? AppColors.textDark), overflow: TextOverflow.ellipsis)),
       ]),
     );
   }

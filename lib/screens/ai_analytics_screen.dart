@@ -240,43 +240,67 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen> {
                 borderRadius: BorderRadius.circular(10),
                 border: Border.all(color: d.statusColor.withValues(alpha: 0.15)),
               ),
-              child: Row(children: [
-                Container(
-                  padding: const EdgeInsets.all(6),
-                  decoration: BoxDecoration(color: d.statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
-                  child: Icon(_actionIcon(d.action), size: 16, color: d.statusColor),
-                ),
-                const SizedBox(width: 12),
-                Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                  Text(d.description, style: const TextStyle(fontSize: 12, color: AppColors.textDark)),
-                  const SizedBox(height: 3),
-                  Text('${d.userName} • ${_fmtTime(d.timestamp)}', style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
-                ])),
-                const SizedBox(width: 8),
-                _statusBadge(d.status, d.statusColor),
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(6)),
-                  child: Text('${(d.confidence * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textMid)),
-                ),
-                if (d.status == 'pending' || d.status == 'approved') ...[
-                  const SizedBox(width: 8),
-                  SizedBox(
-                    height: 28,
-                    child: OutlinedButton(
-                      onPressed: () => _showOverrideDialog(context, d),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.accent,
-                        side: BorderSide(color: AppColors.accent.withValues(alpha: 0.4)),
-                        padding: const EdgeInsets.symmetric(horizontal: 8),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      child: const Text('Override', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final narrow = constraints.maxWidth < 700;
+                  final statusWidgets = [
+                    _statusBadge(d.status, d.statusColor),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(6)),
+                      child: Text('${(d.confidence * 100).toStringAsFixed(0)}%', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textMid)),
                     ),
-                  ),
-                ],
-              ]),
+                    if (d.status == 'pending' || d.status == 'approved')
+                      SizedBox(
+                        height: 28,
+                        child: OutlinedButton(
+                          onPressed: () => _showOverrideDialog(context, d),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.accent,
+                            side: BorderSide(color: AppColors.accent.withValues(alpha: 0.4)),
+                            padding: const EdgeInsets.symmetric(horizontal: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                          ),
+                          child: const Text('Override', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600)),
+                        ),
+                      ),
+                  ];
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(children: [
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(color: d.statusColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(8)),
+                          child: Icon(_actionIcon(d.action), size: 16, color: d.statusColor),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                          Text(d.description, style: const TextStyle(fontSize: 12, color: AppColors.textDark), overflow: TextOverflow.ellipsis, maxLines: 2),
+                          const SizedBox(height: 3),
+                          Text('${d.userName} • ${_fmtTime(d.timestamp)}', style: const TextStyle(fontSize: 10, color: AppColors.textLight), overflow: TextOverflow.ellipsis),
+                        ])),
+                        if (!narrow) ...[
+                          const SizedBox(width: 8),
+                          ...statusWidgets
+                              .expand((w) => [w, const SizedBox(width: 8)])
+                              .toList()
+                            ..removeLast(),
+                        ],
+                      ]),
+                      if (narrow) ...[
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 6,
+                          children: statusWidgets,
+                        ),
+                      ],
+                    ],
+                  );
+                },
+              ),
             )),
       ]),
     );

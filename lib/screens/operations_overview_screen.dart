@@ -130,12 +130,15 @@ class _OperationsOverviewScreenState extends State<OperationsOverviewScreen>
         children: [
           const Icon(Icons.warehouse_rounded, size: 20, color: AppColors.primary),
           const SizedBox(width: 8),
-          const Text(
-            'B7 Warehouse — Live Operations',
-            style: TextStyle(
-              fontWeight: FontWeight.w800,
-              fontSize: 14,
-              color: AppColors.textDark,
+          const Flexible(
+            child: Text(
+              'B7 Warehouse — Live Operations',
+              style: TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+                color: AppColors.textDark,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
           const Spacer(),

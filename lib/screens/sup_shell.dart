@@ -135,9 +135,12 @@ class _SupervisorShellNewState extends State<SupervisorShellNew> with WidgetsBin
                             icon: const Icon(Icons.menu),
                           ),
                         ),
-                      Text(
-                        _labels[_index],
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                      Flexible(
+                        child: Text(
+                          _labels[_index],
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                       const Spacer(),
                       // Live indicator
@@ -229,24 +232,29 @@ class _SupervisorShellNewState extends State<SupervisorShellNew> with WidgetsBin
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                padding: const EdgeInsets.all(6),
-                child: Image.asset(
-                  'assets/images/ant_logo.png',
-                  fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => const Icon(Icons.warehouse_rounded, color: Colors.white, size: 22),
+                padding: const EdgeInsets.all(7),
+                child: ClipRect(
+                  child: Transform.scale(
+                    scale: 2.5,
+                    child: Image.asset(
+                      'assets/images/logo.png',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => const Icon(Icons.warehouse_rounded, color: Colors.white, size: 22),
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('ANT BMS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
+                  Text('ANT HOUSE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w800, fontSize: 16)),
                   Text('Supervisor Panel', style: TextStyle(color: Colors.white60, fontSize: 11)),
                 ],
               ),

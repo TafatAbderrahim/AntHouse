@@ -243,16 +243,21 @@ class _SupIncidentsScreenState extends State<SupIncidentsScreen> {
             const SizedBox(height: 8),
 
             // ── Location & Reporter ──
-            Row(
+            Wrap(
+              spacing: 12,
+              runSpacing: 4,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
-                Icon(Icons.location_on_rounded, size: 13, color: AppColors.textLight),
-                const SizedBox(width: 4),
-                Text('${inc.location} (Floor ${inc.floor})', style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
-                const SizedBox(width: 12),
-                Icon(Icons.person_rounded, size: 13, color: AppColors.textLight),
-                const SizedBox(width: 4),
-                Text(inc.reportedBy, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
-                const Spacer(),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.location_on_rounded, size: 13, color: AppColors.textLight),
+                  const SizedBox(width: 4),
+                  Text('${inc.location} (Floor ${inc.floor})', style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+                ]),
+                Row(mainAxisSize: MainAxisSize.min, children: [
+                  Icon(Icons.person_rounded, size: 13, color: AppColors.textLight),
+                  const SizedBox(width: 4),
+                  Text(inc.reportedBy, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+                ]),
                 Text(_timeAgo(inc.reportedAt), style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
               ],
             ),

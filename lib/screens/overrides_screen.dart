@@ -94,23 +94,20 @@ class _OverridesScreenState extends State<OverridesScreen> {
           ),
           const SizedBox(height: 14),
           // Tabs + search
-          Row(
-            children: [
-              const Expanded(
-                child: TabBar(
-                  labelColor: AppColors.primaryDark,
-                  unselectedLabelColor: AppColors.textMid,
-                  indicatorColor: AppColors.primary,
-                  labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
-                  tabs: [
-                    Tab(text: 'Override History'),
-                    Tab(text: 'Active Decisions'),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 16),
-              SizedBox(
-                width: 220,
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final narrow = constraints.maxWidth < 900;
+              final tabs = const TabBar(
+                labelColor: AppColors.primaryDark,
+                unselectedLabelColor: AppColors.textMid,
+                indicatorColor: AppColors.primary,
+                labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                tabs: [
+                  Tab(text: 'Override History'),
+                  Tab(text: 'Active Decisions'),
+                ],
+              );
+              final searchField = SizedBox(
                 height: 38,
                 child: TextField(
                   onChanged: (v) => setState(() => _search = v),
@@ -124,9 +121,8 @@ class _OverridesScreenState extends State<OverridesScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Container(
+              );
+              final filterDropdown = Container(
                 height: 38,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 decoration: BoxDecoration(color: AppColors.bg, borderRadius: BorderRadius.circular(10)),
@@ -142,8 +138,44 @@ class _OverridesScreenState extends State<OverridesScreen> {
                     onChanged: (v) => setState(() => _typeFilter = v!),
                   ),
                 ),
-              ),
-            ],
+              );
+
+              if (!narrow) {
+                return Row(
+                  children: [
+                    const Expanded(child: TabBar(
+                      labelColor: AppColors.primaryDark,
+                      unselectedLabelColor: AppColors.textMid,
+                      indicatorColor: AppColors.primary,
+                      labelStyle: TextStyle(fontSize: 13, fontWeight: FontWeight.w700),
+                      tabs: [
+                        Tab(text: 'Override History'),
+                        Tab(text: 'Active Decisions'),
+                      ],
+                    )),
+                    const SizedBox(width: 16),
+                    Flexible(flex: 2, child: searchField),
+                    const SizedBox(width: 10),
+                    filterDropdown,
+                  ],
+                );
+              }
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  tabs,
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(child: searchField),
+                      const SizedBox(width: 10),
+                      filterDropdown,
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ],
       ),
@@ -206,19 +238,23 @@ class _OverridesScreenState extends State<OverridesScreen> {
       title: Text(o.description, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark)),
       subtitle: Padding(
         padding: const EdgeInsets.only(top: 4),
-        child: Row(
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 4,
+          crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _originBadge(o.originalType),
-            const SizedBox(width: 8),
             _roleBadge(o.overriddenByRole),
-            const SizedBox(width: 8),
-            Icon(Icons.person_outline, size: 12, color: AppColors.textLight),
-            const SizedBox(width: 3),
-            Text(o.overriddenBy, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
-            const SizedBox(width: 12),
-            Icon(Icons.access_time, size: 12, color: AppColors.textLight),
-            const SizedBox(width: 3),
-            Text(_fmtTime(o.timestamp), style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.person_outline, size: 12, color: AppColors.textLight),
+              const SizedBox(width: 3),
+              Text(o.overriddenBy, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+            ]),
+            Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(Icons.access_time, size: 12, color: AppColors.textLight),
+              const SizedBox(width: 3),
+              Text(_fmtTime(o.timestamp), style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+            ]),
           ],
         ),
       ),

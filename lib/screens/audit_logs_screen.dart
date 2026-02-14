@@ -431,51 +431,66 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> with SingleTickerProv
                   Flexible(child: Text(m.productName, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textDark))),
                 ]),
                 const SizedBox(height: 4),
-                Row(children: [
-                  Icon(Icons.location_on_outlined, size: 12, color: AppColors.textLight),
-                  const SizedBox(width: 3),
-                  Text('${m.fromLocation}', style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 6),
-                    child: Icon(Icons.arrow_forward, size: 10, color: AppColors.textLight),
-                  ),
-                  Text(m.toLocation, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
-                  const SizedBox(width: 12),
-                  Icon(Icons.person_outline, size: 12, color: AppColors.textLight),
-                  const SizedBox(width: 3),
-                  Text(m.performedBy, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
-                ]),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 4,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.location_on_outlined, size: 12, color: AppColors.textLight),
+                      const SizedBox(width: 3),
+                      Text('${m.fromLocation}', style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 4),
+                        child: Icon(Icons.arrow_forward, size: 10, color: AppColors.textLight),
+                      ),
+                      Text(m.toLocation, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+                    ]),
+                    Row(mainAxisSize: MainAxisSize.min, children: [
+                      Icon(Icons.person_outline, size: 12, color: AppColors.textLight),
+                      const SizedBox(width: 3),
+                      Text(m.performedBy, style: const TextStyle(fontSize: 11, color: AppColors.textMid)),
+                    ]),
+                  ],
+                ),
               ],
             ),
           ),
-          // Quantity
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: m.typeColor.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              m.quantity > 0 ? '+${m.quantity}' : '${m.quantity}',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: m.typeColor),
-            ),
-          ),
           const SizedBox(width: 10),
-          // Type badge
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-            decoration: BoxDecoration(color: m.typeColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
-            child: Text(m.type[0].toUpperCase() + m.type.substring(1), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: m.typeColor)),
-          ),
-          const SizedBox(width: 10),
-          // Ref + time
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (m.transactionRef != null)
-                Text(m.transactionRef!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textMid, fontFamily: 'monospace')),
-              Text(_fmtDate(m.timestamp), style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
-            ],
+          Flexible(
+            child: Wrap(
+              alignment: WrapAlignment.end,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 6,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: m.typeColor.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    m.quantity > 0 ? '+${m.quantity}' : '${m.quantity}',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: m.typeColor),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(color: m.typeColor.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(12)),
+                  child: Text(m.type[0].toUpperCase() + m.type.substring(1), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: m.typeColor)),
+                ),
+                Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    if (m.transactionRef != null)
+                      Text(m.transactionRef!, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textMid, fontFamily: 'monospace')),
+                    Text(_fmtDate(m.timestamp), style: const TextStyle(fontSize: 10, color: AppColors.textLight)),
+                  ],
+                ),
+              ],
+            ),
           ),
         ],
       ),

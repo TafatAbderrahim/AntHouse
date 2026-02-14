@@ -159,18 +159,18 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
             // ── Quantities ──
             Row(
               children: [
-                _infoChip(Icons.arrow_downward_rounded, 'Expected: ${task.expectedQuantity}', const Color(0xFF1565C0)),
+                Flexible(child: _infoChip(Icons.arrow_downward_rounded, 'Expected: ${task.expectedQuantity}', const Color(0xFF1565C0))),
                 const SizedBox(width: 8),
-                _infoChip(Icons.place_rounded, task.toLocation, const Color(0xFF6A1B9A)),
+                Flexible(child: _infoChip(Icons.place_rounded, task.toLocation, const Color(0xFF6A1B9A))),
               ],
             ),
             const SizedBox(height: 4),
             Row(
               children: [
-                _infoChip(Icons.local_shipping_outlined, 'From: ${task.fromLocation}', AppColors.textMid),
+                Flexible(child: _infoChip(Icons.local_shipping_outlined, 'From: ${task.fromLocation}', AppColors.textMid)),
                 const Spacer(),
                 if (task.assignedChariotId.isNotEmpty)
-                  _infoChip(Icons.shopping_cart_outlined, task.assignedChariotId, AppColors.textMid),
+                  Flexible(child: _infoChip(Icons.shopping_cart_outlined, task.assignedChariotId, AppColors.textMid)),
               ],
             ),
 
@@ -182,7 +182,9 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
               // ── Received quantity input ──
               Row(
                 children: [
-                  const Text('Received Qty:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
+                  const Flexible(
+                    child: Text('Received Qty:', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600), overflow: TextOverflow.ellipsis),
+                  ),
                   const SizedBox(width: 12),
                   _qtyButton(Icons.remove, () {
                     if (task.receivedQuantity > 0) {
@@ -191,7 +193,7 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
                     }
                   }),
                   Container(
-                    width: 60,
+                    width: 50,
                     padding: const EdgeInsets.symmetric(vertical: 6),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
@@ -211,13 +213,15 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
                     setState(() => task.receivedQuantity++);
                     widget.onTaskUpdated();
                   }),
-                  const SizedBox(width: 8),
-                  TextButton(
-                    onPressed: () {
-                      setState(() => task.receivedQuantity = task.expectedQuantity);
-                      widget.onTaskUpdated();
-                    },
-                    child: const Text('= Expected', style: TextStyle(fontSize: 11)),
+                  const SizedBox(width: 4),
+                  Flexible(
+                    child: TextButton(
+                      onPressed: () {
+                        setState(() => task.receivedQuantity = task.expectedQuantity);
+                        widget.onTaskUpdated();
+                      },
+                      child: const Text('= Expected', style: TextStyle(fontSize: 11)),
+                    ),
                   ),
                 ],
               ),
@@ -234,9 +238,12 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
                     children: [
                       const Icon(Icons.warning_rounded, size: 16, color: AppColors.error),
                       const SizedBox(width: 6),
-                      Text(
-                        'Discrepancy: expected ${task.expectedQuantity}, received ${task.receivedQuantity}',
-                        style: const TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.w600),
+                      Flexible(
+                        child: Text(
+                          'Discrepancy: expected ${task.expectedQuantity}, received ${task.receivedQuantity}',
+                          style: const TextStyle(fontSize: 11, color: AppColors.error, fontWeight: FontWeight.w600),
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ),

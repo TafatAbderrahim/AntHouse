@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  EMPLOYEE DASHBOARD — §7.1 steps 1-2
@@ -38,7 +39,7 @@ class EmpDashboardScreen extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Good ${_greeting()}, Mohamed',
+                    'Good ${_greeting()}, ${ApiService.currentFirstName ?? 'Employee'}',
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: AppColors.textDark),
                   ),
                   const SizedBox(height: 4),
@@ -53,7 +54,10 @@ class EmpDashboardScreen extends StatelessWidget {
             const SizedBox(width: 8),
             IconButton(
               icon: const Icon(Icons.logout_rounded, color: AppColors.textMid),
-              onPressed: () => Navigator.of(context).pushReplacementNamed('/login'),
+              onPressed: () {
+                ApiService.logout();
+                Navigator.of(context).pushReplacementNamed('/login');
+              },
             ),
           ],
         ),

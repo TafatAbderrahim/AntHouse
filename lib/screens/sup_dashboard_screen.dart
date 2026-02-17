@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  SUPERVISOR DASHBOARD — §7.2 steps 1-2, 4
@@ -10,16 +11,77 @@ import '../models/operations_data.dart';
 //  • Zone occupancy overview
 // ═══════════════════════════════════════════════════════════════
 
-class SupDashboardScreen extends StatelessWidget {
+class SupDashboardScreen extends StatefulWidget {
   const SupDashboardScreen({super.key});
 
   @override
+  State<SupDashboardScreen> createState() => _SupDashboardScreenState();
+}
+
+class _SupDashboardScreenState extends State<SupDashboardScreen> {
+  List<OperationalTask> tasks = [];
+  List<Chariot> chariots = [];
+  List<LiveWorker> workers = [];
+  List<Incident> incidents = [];
+  List<AiOperationalDecision> aiDecisions = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    tasks = [];
+    chariots = [];
+    workers = [];
+    incidents = [];
+    aiDecisions = [];
+
+    // Load live data
+    try {
+      final monResult = await ApiService.getWarehouseMonitoring();
+      if (monResult['success'] == true && monResult['data'] != null) {
+        final data = monResult['data'];
+        // Update workers from API
+        if (data['employees'] is List) {
+          final empList = data['employees'] as List;
+          workers = empList.map<LiveWorker>((e) => LiveWorker(
+            id: e['id']?.toString() ?? '',
+            name: e['name'] ?? e['fullName'] ?? '${e['firstName'] ?? ''} ${e['lastName'] ?? ''}'.trim(),
+            role: (e['role'] ?? 'employee').toString().toLowerCase(),
+            floor: e['floor'] ?? 0,
+            x: (e['x'] ?? 10.0).toDouble(),
+            y: (e['y'] ?? 10.0).toDouble(),
+            currentTask: e['currentTask']?.toString() ?? '',
+            status: e['status'] ?? 'active',
+            color: const Color(0xFF2196F3),
+          )).toList();
+        }
+        // Update chariots from API
+        if (data['chariots'] is List) {
+          final chrList = data['chariots'] as List;
+          chariots = chrList.map<Chariot>((c) => Chariot(
+            id: c['id']?.toString() ?? '',
+            code: c['code'] ?? '',
+            assignedOperation: c['assignedOperation'] ?? '',
+            inUse: c['status'] == 'IN_USE' || c['inUse'] == true,
+            assignedEmployeeId: c['assignedTo']?.toString() ?? '',
+          )).toList();
+        }
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final tasks = MockOperationsData.generateEmployeeTasks('EMP002');
-    final chariots = MockOperationsData.generateChariots();
-    final workers = MockOperationsData.generateLiveWorkers();
-    final incidents = MockOperationsData.generateIncidents();
-    final aiDecisions = MockOperationsData.generateAiDecisions();
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
 
     final totalTasks = tasks.length;
     final completedTasks = tasks.where((t) => t.status == OpTaskStatus.completed).length;

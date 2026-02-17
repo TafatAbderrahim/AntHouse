@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  EMPLOYEE PICKING ASSIGNMENT — §7.1 step 5
@@ -234,12 +235,18 @@ class _EmpPickingScreenState extends State<EmpPickingScreen> {
                   if (task.status == OpTaskStatus.pending)
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             task.status = OpTaskStatus.inProgress;
                             task.startedAt = DateTime.now();
                           });
                           widget.onTaskUpdated();
+                          try {
+                            await ApiService.startOperation({
+                              'taskId': task.id,
+                              'type': 'PICKING',
+                            });
+                          } catch (_) {}
                         },
                         icon: const Icon(Icons.play_arrow_rounded, size: 18),
                         label: const Text('Start Picking'),
@@ -327,17 +334,28 @@ class _EmpPickingScreenState extends State<EmpPickingScreen> {
     );
   }
 
-  void _completePicking(OperationalTask task) {
+  void _completePicking(OperationalTask task) async {
+    try {
+      await ApiService.executeLine({
+        'taskId': task.id,
+        'productId': task.productId,
+        'quantity': task.expectedQuantity,
+        'type': 'PICKING',
+      });
+      await ApiService.completeOperation(task.id);
+    } catch (_) {}
     setState(() {
       task.status = OpTaskStatus.completed;
       task.completedAt = DateTime.now();
     });
     widget.onTaskUpdated();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Picking ${task.orderRef} completed — ${task.expectedQuantity} placed at ${task.toLocation}.'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Picking ${task.orderRef} completed — ${task.expectedQuantity} placed at ${task.toLocation}.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
   }
 }

@@ -3,6 +3,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 import 'emp_dashboard_screen.dart';
 import 'emp_receipt_screen.dart';
 import 'emp_storage_screen.dart';
@@ -33,8 +34,75 @@ class _EmployeeShellState extends State<EmployeeShell> with WidgetsBindingObserv
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    _tasks = MockOperationsData.generateEmployeeTasks('EMP002');
+    _tasks = [];
     _initConnectivity();
+    _fetchTasks();
+  }
+
+  Future<void> _fetchTasks() async {
+    try {
+      final list = await ApiService.getMyTasks();
+      if (!mounted || list.isEmpty) return;
+      setState(() {
+        _tasks = list.map<OperationalTask>((t) {
+          final statusStr = (t['status'] ?? 'PENDING').toString().toUpperCase();
+          OpTaskStatus status;
+          switch (statusStr) {
+            case 'IN_PROGRESS':
+            case 'STARTED':
+              status = OpTaskStatus.inProgress;
+              break;
+            case 'COMPLETED':
+            case 'DONE':
+              status = OpTaskStatus.completed;
+              break;
+            case 'FAILED':
+              status = OpTaskStatus.failed;
+              break;
+            default:
+              status = OpTaskStatus.pending;
+          }
+
+          final typeStr = (t['type'] ?? 'RECEIPT').toString().toUpperCase();
+          OpType opType;
+          switch (typeStr) {
+            case 'TRANSFER':
+            case 'STORAGE':
+              opType = OpType.transfer;
+              break;
+            case 'PICKING':
+            case 'PICK':
+              opType = OpType.picking;
+              break;
+            case 'DELIVERY':
+              opType = OpType.delivery;
+              break;
+            default:
+              opType = OpType.receipt;
+          }
+
+          return OperationalTask(
+            id: t['id']?.toString() ?? '',
+            orderRef: t['reference'] ?? t['orderRef'] ?? '',
+            operation: opType,
+            orderType: OrderType.command,
+            sku: t['sku'] ?? t['productSku'] ?? '',
+            productName: t['productName'] ?? t['description'] ?? '',
+            productId: t['productId']?.toString() ?? '',
+            expectedQuantity: t['quantity'] ?? t['expectedQuantity'] ?? 0,
+            receivedQuantity: t['completedQuantity'] ?? t['receivedQuantity'] ?? 0,
+            fromLocation: t['sourceLocation'] ?? t['fromLocation'] ?? '',
+            toLocation: t['destinationLocation'] ?? t['toLocation'] ?? '',
+            targetFloor: t['floor'] ?? 0,
+            status: status,
+            assignedEmployeeId: t['assignedToId']?.toString() ?? '',
+            assignedChariotId: t['chariotId']?.toString() ?? '',
+          );
+        }).toList();
+      });
+    } catch (_) {
+      // Keep mock data
+    }
   }
 
   @override

@@ -1,12 +1,53 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 
-class AiValidationScreen extends StatelessWidget {
+class AiValidationScreen extends StatefulWidget {
   const AiValidationScreen({super.key});
 
   @override
+  State<AiValidationScreen> createState() => _AiValidationScreenState();
+}
+
+class _AiValidationScreenState extends State<AiValidationScreen> {
+  List<AiDecision> decisions = [];
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDecisions();
+  }
+
+  Future<void> _fetchDecisions() async {
+    try {
+      final list = await ApiService.getAiDecisions();
+      if (!mounted) return;
+      setState(() {
+        decisions = list.map<AiDecision>((d) => AiDecision(
+          id: d['id']?.toString(),
+          action: d['decisionType'] ?? d['action'] ?? 'optimize',
+          description: d['description'] ?? d['recommendation'] ?? '',
+          timestamp: d['createdAt'] != null ? DateTime.tryParse(d['createdAt'].toString()) : null,
+          status: (d['status'] ?? 'pending').toString().toLowerCase(),
+          confidence: (d['confidence'] ?? 0.85).toDouble(),
+          userName: d['userName'] ?? d['createdBy'] ?? 'AI Engine',
+        )).toList();
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final decisions = MockDataGenerator.generateAiDecisions();
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    final decisions = this.decisions;
 
     return ListView.builder(
       padding: const EdgeInsets.all(16),

@@ -172,6 +172,7 @@ class OperationalTask {
   final OrderType orderType;
   final String sku;
   final String productName;
+  final String productId;
   final int expectedQuantity;
   int receivedQuantity;
   final String fromLocation;
@@ -195,6 +196,7 @@ class OperationalTask {
     required this.orderType,
     required this.sku,
     required this.productName,
+    this.productId = '',
     required this.expectedQuantity,
     this.receivedQuantity = 0,
     required this.fromLocation,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 import '../widgets/mini_charts.dart';
 
 class AiAnalyticsScreen extends StatefulWidget {
@@ -10,15 +11,47 @@ class AiAnalyticsScreen extends StatefulWidget {
 
 class _AiAnalyticsScreenState extends State<AiAnalyticsScreen> {
   late List<AiDecision> decisions;
+  bool _loading = true;
 
   @override
   void initState() {
     super.initState();
-    decisions = MockDataGenerator.generateAiDecisions();
+    _fetchDecisions();
+  }
+
+  Future<void> _fetchDecisions() async {
+    try {
+      final list = await ApiService.getAiDecisions();
+      if (!mounted) return;
+      if (list.isNotEmpty) {
+        setState(() {
+          decisions = list.map<AiDecision>((d) => AiDecision(
+            id: d['id']?.toString(),
+            action: d['decisionType'] ?? d['action'] ?? 'optimize',
+            description: d['description'] ?? d['recommendation'] ?? '',
+            timestamp: d['createdAt'] != null ? DateTime.tryParse(d['createdAt'].toString()) : null,
+            status: (d['status'] ?? 'pending').toString().toLowerCase(),
+            confidence: (d['confidence'] ?? 0.85).toDouble(),
+            userName: d['userName'] ?? d['createdBy'] ?? 'AI Engine',
+          )).toList();
+          _loading = false;
+        });
+        return;
+      }
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      decisions = [];
+      _loading = false;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
     final approved = decisions.where((d) => d.status == 'approved').length;
     final overridden = decisions.where((d) => d.status == 'overridden').length;
     final pending = decisions.where((d) => d.status == 'pending').length;
@@ -385,21 +418,14 @@ class _AiAnalyticsScreenState extends State<AiAnalyticsScreen> {
               }
               setState(() {
                 decision.status = 'overridden';
-                decision.userName = 'Admin Principal';
+                decision.userName = ApiService.currentFullName.isNotEmpty ? ApiService.currentFullName : 'Admin';
               });
-              // Log override
-              MockWarehouseState.overrides.insert(
-                0,
-                OverrideRecord(
-                  originalDecisionId: decision.id,
-                  originalType: 'AI',
-                  originalAction: decision.action,
-                  description: 'Admin override: ${decision.description}',
-                  justification: justificationCtrl.text.trim(),
-                  overriddenBy: 'Admin Principal',
-                  overriddenByRole: 'admin',
-                ),
-              );
+              // Call API to override decision
+              try {
+                ApiService.post('/ai-decisions/${decision.id}/override', {
+                  'justification': justificationCtrl.text.trim(),
+                });
+              } catch (_) {}
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('Decision overridden successfully'), backgroundColor: AppColors.success),

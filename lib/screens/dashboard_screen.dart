@@ -1,30 +1,96 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 import '../models/admin_data.dart';
 
-class DashboardScreen extends StatelessWidget {
+class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
 
   @override
+  State<DashboardScreen> createState() => _DashboardScreenState();
+}
+
+class _DashboardScreenState extends State<DashboardScreen> {
+  bool _loading = true;
+  String _totalOrders = '—';
+  String _activeWorkers = '—';
+  String _aiDecisions = '—';
+  String _alerts = '—';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDashboard();
+  }
+
+  Future<void> _fetchDashboard() async {
+    try {
+      final result = await ApiService.getAdminDashboard();
+      if (!mounted) return;
+      if (result['success'] == true && result['data'] != null) {
+        final data = result['data'];
+        final overview = data['overview'] ?? data;
+        setState(() {
+          _totalOrders = '${overview['totalOrders'] ?? overview['totalTransactions'] ?? 0}';
+          _activeWorkers = '${overview['activeEmployees'] ?? overview['activeWorkers'] ?? 0}';
+          _aiDecisions = '${data['aiMetrics']?['totalDecisions'] ?? overview['aiDecisionsToday'] ?? 0}';
+          _alerts = '${overview['alerts'] ?? overview['lowStockAlerts'] ?? 0}';
+          _loading = false;
+        });
+        return;
+      }
+    } catch (_) {}
+
+    if (!mounted) return;
+    setState(() => _loading = false);
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return ListView(
-      padding: const EdgeInsets.all(16),
-      children: [
-        Text('Dashboard',
-            style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-                color: AppColors.textDark)),
-        const SizedBox(height: 16),
-        _card('Total Orders', '1,247', Icons.receipt_long_rounded,
-            AppColors.primary),
-        const SizedBox(height: 12),
-        _card('Active Workers', '23', Icons.people_rounded, AppColors.success),
-        const SizedBox(height: 12),
-        _card('AI Decisions Today', '89', Icons.psychology_rounded,
-            AppColors.aiBlue),
-        const SizedBox(height: 12),
-        _card('Alerts', '3', Icons.warning_rounded, AppColors.error),
-      ],
+    if (_loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    return RefreshIndicator(
+      onRefresh: _fetchDashboard,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          Row(
+            children: [
+              Text('Dashboard',
+                  style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textDark)),
+              const Spacer(),
+              if (ApiService.isLoggedIn)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.cloud_done_rounded, size: 14, color: AppColors.success),
+                      SizedBox(width: 4),
+                      Text('LIVE', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.success)),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _card('Total Orders', _totalOrders, Icons.receipt_long_rounded, AppColors.primary),
+          const SizedBox(height: 12),
+          _card('Active Workers', _activeWorkers, Icons.people_rounded, AppColors.success),
+          const SizedBox(height: 12),
+          _card('AI Decisions Today', _aiDecisions, Icons.psychology_rounded, AppColors.aiBlue),
+          const SizedBox(height: 12),
+          _card('Alerts', _alerts, Icons.warning_rounded, AppColors.error),
+        ],
+      ),
     );
   }
 

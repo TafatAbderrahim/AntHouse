@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 
 /// FR-7, FR-46: Admin may override any AI or Supervisor decision.
 /// FR-8: Overrides require justification.
@@ -19,8 +20,28 @@ class _OverridesScreenState extends State<OverridesScreen> {
   @override
   void initState() {
     super.initState();
-    _overrides = MockWarehouseState.overrides;
-    _pendingDecisions = MockDataGenerator.generateAiDecisions();
+    _overrides = [];
+    _pendingDecisions = [];
+    _fetchFromApi();
+  }
+
+  Future<void> _fetchFromApi() async {
+    try {
+      final aiList = await ApiService.getPendingAiDecisions();
+      if (!mounted) return;
+      if (aiList.isNotEmpty) {
+        setState(() {
+          _pendingDecisions = aiList.map<AiDecision>((d) => AiDecision(
+            id: d['id']?.toString(),
+            action: d['decisionType'] ?? d['action'] ?? 'optimize',
+            description: d['description'] ?? '',
+            status: (d['status'] ?? 'pending').toString().toLowerCase(),
+            confidence: (d['confidence'] ?? 0.85).toDouble(),
+            userName: d['userName'] ?? 'AI Engine',
+          )).toList();
+        });
+      }
+    } catch (_) {}
   }
 
   List<OverrideRecord> get _filteredOverrides {
@@ -497,32 +518,47 @@ class _OverridesScreenState extends State<OverridesScreen> {
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           FilledButton(
-            onPressed: () {
+            onPressed: () async {
               if (justificationCtrl.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('Justification is required (FR-8)'), backgroundColor: AppColors.error),
                 );
                 return;
               }
-              // Create override record
-              final override = OverrideRecord(
-                originalDecisionId: decision.id,
-                originalType: 'AI',
-                originalAction: decision.action,
-                description: 'Admin override: ${decision.description}',
-                justification: justificationCtrl.text.trim(),
-                overriddenBy: 'Admin Principal',
-                overriddenByRole: 'admin',
-              );
-              setState(() {
-                decision.status = 'overridden';
-                decision.userName = 'Admin Principal';
-                _overrides.insert(0, override);
-              });
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Decision overridden and logged'), backgroundColor: AppColors.success),
-              );
+              try {
+                await ApiService.overrideAiDecision(
+                  decision.id ?? '',
+                  justificationCtrl.text.trim(),
+                  'Admin override applied',
+                );
+                final adminName = ApiService.currentFullName.isNotEmpty ? ApiService.currentFullName : 'Admin Principal';
+                final override = OverrideRecord(
+                  originalDecisionId: decision.id,
+                  originalType: 'AI',
+                  originalAction: decision.action,
+                  description: 'Admin override: ${decision.description}',
+                  justification: justificationCtrl.text.trim(),
+                  overriddenBy: adminName,
+                  overriddenByRole: 'admin',
+                );
+                setState(() {
+                  decision.status = 'overridden';
+                  decision.userName = adminName;
+                  _overrides.insert(0, override);
+                });
+                if (mounted) Navigator.pop(ctx);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Decision overridden and logged'), backgroundColor: AppColors.success),
+                  );
+                }
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                  );
+                }
+              }
             },
             style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
             child: const Text('Confirm Override'),

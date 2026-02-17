@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -8,8 +9,8 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _nameCtrl = TextEditingController(text: 'Admin Principal');
-  final _emailCtrl = TextEditingController(text: 'admin@antbms.dz');
+  final _nameCtrl = TextEditingController(text: ApiService.currentFullName.isNotEmpty ? ApiService.currentFullName : 'Admin Principal');
+  final _emailCtrl = TextEditingController(text: ApiService.currentEmail ?? 'admin@antbms.dz');
   final _phoneCtrl = TextEditingController(text: '+213 555 123 456');
   final _currentPwCtrl = TextEditingController();
   final _newPwCtrl = TextEditingController();
@@ -108,7 +109,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () => _showSnack('Profile updated successfully'),
+              onPressed: _saveProfile,
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
@@ -182,7 +183,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton(
-              onPressed: () => _showSnack('Password updated successfully'),
+              onPressed: _updatePassword,
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.accent,
                 side: const BorderSide(color: AppColors.accent),
@@ -278,11 +279,59 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _fmtDate(DateTime d) => '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year} ${d.hour.toString().padLeft(2, '0')}:${d.minute.toString().padLeft(2, '0')}';
 
-  void _showSnack(String msg) {
+  Future<void> _saveProfile() async {
+    final userId = ApiService.currentUserId;
+    if (userId == null || userId.isEmpty) {
+      _showSnack('No user session found', error: true);
+      return;
+    }
+    final nameParts = _nameCtrl.text.trim().split(' ');
+    final firstName = nameParts.isNotEmpty ? nameParts.first : '';
+    final lastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
+    try {
+      await ApiService.updateUser(userId, {
+        'firstName': firstName,
+        'lastName': lastName,
+        'email': _emailCtrl.text.trim(),
+      });
+      _showSnack('Profile updated successfully');
+    } catch (e) {
+      _showSnack('Error: $e', error: true);
+    }
+  }
+
+  Future<void> _updatePassword() async {
+    if (_newPwCtrl.text.isEmpty) {
+      _showSnack('Enter a new password', error: true);
+      return;
+    }
+    if (_newPwCtrl.text != _confirmPwCtrl.text) {
+      _showSnack('Passwords do not match', error: true);
+      return;
+    }
+    final userId = ApiService.currentUserId;
+    if (userId == null || userId.isEmpty) {
+      _showSnack('No user session found', error: true);
+      return;
+    }
+    try {
+      await ApiService.updateUser(userId, {
+        'password': _newPwCtrl.text,
+      });
+      _currentPwCtrl.clear();
+      _newPwCtrl.clear();
+      _confirmPwCtrl.clear();
+      _showSnack('Password updated successfully');
+    } catch (e) {
+      _showSnack('Error: $e', error: true);
+    }
+  }
+
+  void _showSnack(String msg, {bool error = false}) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(msg),
-        backgroundColor: AppColors.success,
+        backgroundColor: error ? AppColors.error : AppColors.success,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),

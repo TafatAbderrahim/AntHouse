@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  EMPLOYEE DELIVERY EXECUTION — §7.1 step 6
@@ -206,12 +207,18 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
                   if (task.status == OpTaskStatus.pending)
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             task.status = OpTaskStatus.inProgress;
                             task.startedAt = DateTime.now();
                           });
                           widget.onTaskUpdated();
+                          try {
+                            await ApiService.startOperation({
+                              'taskId': task.id,
+                              'type': 'DELIVERY',
+                            });
+                          } catch (_) {}
                         },
                         icon: const Icon(Icons.play_arrow_rounded, size: 18),
                         label: const Text('Start Delivery'),
@@ -284,7 +291,16 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
     );
   }
 
-  void _validateDelivery(OperationalTask task) {
+  void _validateDelivery(OperationalTask task) async {
+    try {
+      await ApiService.executeLine({
+        'taskId': task.id,
+        'productId': task.productId,
+        'quantity': task.expectedQuantity,
+        'type': 'DELIVERY',
+      });
+      await ApiService.completeOperation(task.id);
+    } catch (_) {}
     setState(() {
       task.status = OpTaskStatus.completed;
       task.completedAt = DateTime.now();
@@ -293,21 +309,23 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
     widget.onTaskUpdated();
 
     // Show success dialog
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        icon: const Icon(Icons.check_circle_rounded, size: 64, color: AppColors.success),
-        title: const Text('Delivery Validated!'),
-        content: Text('${task.orderRef}\n${task.productName}\n${task.expectedQuantity} units delivered to ${task.toLocation}.'),
-        actions: [
-          FilledButton(
-            onPressed: () => Navigator.pop(context),
-            style: FilledButton.styleFrom(backgroundColor: AppColors.success),
-            child: const Text('Done'),
-          ),
-        ],
-      ),
-    );
+    if (mounted) {
+      showDialog(
+        context: context,
+        builder: (_) => AlertDialog(
+          icon: const Icon(Icons.check_circle_rounded, size: 64, color: AppColors.success),
+          title: const Text('Delivery Validated!'),
+          content: Text('${task.orderRef}\n${task.productName}\n${task.expectedQuantity} units delivered to ${task.toLocation}.'),
+          actions: [
+            FilledButton(
+              onPressed: () => Navigator.pop(context),
+              style: FilledButton.styleFrom(backgroundColor: AppColors.success),
+              child: const Text('Done'),
+            ),
+          ],
+        ),
+      );
+    }
   }
 
   void _failDelivery(OperationalTask task) {
@@ -329,7 +347,7 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   task.status = OpTaskStatus.failed;
                   task.completedAt = DateTime.now();
@@ -337,6 +355,13 @@ class _EmpDeliveryScreenState extends State<EmpDeliveryScreen> {
                 });
                 widget.onTaskUpdated();
                 Navigator.pop(context);
+                try {
+                  await ApiService.reportIssue({
+                    'taskId': task.id,
+                    'type': 'DELIVERY_FAILURE',
+                    'description': ctrl.text.isEmpty ? 'Delivery failed' : ctrl.text,
+                  });
+                } catch (_) {}
               },
               style: FilledButton.styleFrom(backgroundColor: AppColors.error),
               child: const Text('Submit Failure'),

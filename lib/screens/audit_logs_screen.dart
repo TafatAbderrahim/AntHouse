@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 
 /// Section 7.3 item 5: Reviews audit logs — Stock movements, Overrides, Operational validations.
 class AuditLogsScreen extends StatefulWidget {
@@ -23,10 +24,31 @@ class _AuditLogsScreenState extends State<AuditLogsScreen> with SingleTickerProv
   void initState() {
     super.initState();
     _tabCtrl = TabController(length: 4, vsync: this);
-    _logs = MockDataGenerator.generateAuditLogs();
-    _movements = MockWarehouseState.stockMovements;
-    _overrides = MockWarehouseState.overrides;
-    _transactions = MockWarehouseState.transactions;
+    _logs = [];
+    _movements = [];
+    _overrides = [];
+    _transactions = [];
+    _fetchFromApi();
+  }
+
+  Future<void> _fetchFromApi() async {
+    try {
+      final result = await ApiService.getAuditLogs();
+      if (!mounted) return;
+      if (result['success'] == true && result['data'] != null) {
+        final content = result['data']['content'] ?? result['data'];
+        final list = (content is List) ? content : [];
+        setState(() {
+          _logs = list.map<AuditLogEntry>((l) => AuditLogEntry(
+            id: l['id']?.toString(),
+            action: l['action'] ?? '',
+            description: l['description'] ?? l['details'] ?? '',
+            userName: l['performedBy'] ?? l['userId']?.toString() ?? '',
+            timestamp: l['timestamp'] != null ? DateTime.tryParse(l['timestamp'].toString()) : DateTime.now(),
+          )).toList();
+        });
+      }
+    } catch (_) {}
   }
 
   @override

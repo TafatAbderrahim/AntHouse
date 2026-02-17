@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  EMPLOYEE RECEIPT — §7.1 step 3
@@ -258,12 +259,18 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
                   if (task.status == OpTaskStatus.pending)
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             task.status = OpTaskStatus.inProgress;
                             task.startedAt = DateTime.now();
                           });
                           widget.onTaskUpdated();
+                          try {
+                            await ApiService.startOperation({
+                              'taskId': task.id,
+                              'type': 'RECEIPT',
+                            });
+                          } catch (_) {}
                         },
                         icon: const Icon(Icons.play_arrow_rounded, size: 18),
                         label: const Text('Start Receipt'),
@@ -362,7 +369,16 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
     );
   }
 
-  void _confirmReceipt(OperationalTask task) {
+  void _confirmReceipt(OperationalTask task) async {
+    try {
+      await ApiService.executeLine({
+        'taskId': task.id,
+        'productId': task.productId,
+        'quantity': task.receivedQuantity,
+        'type': 'RECEIPT',
+      });
+      await ApiService.completeOperation(task.id);
+    } catch (_) {}
     setState(() {
       task.status = OpTaskStatus.completed;
       task.completedAt = DateTime.now();
@@ -372,12 +388,14 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
       }
     });
     widget.onTaskUpdated();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Receipt ${task.orderRef} validated — ${task.receivedQuantity} units recorded.'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Receipt ${task.orderRef} validated — ${task.receivedQuantity} units recorded.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
   }
 
   void _flagDiscrepancy(OperationalTask task) {
@@ -400,7 +418,7 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 setState(() {
                   task.discrepancyNote = ctrl.text;
                   task.status = OpTaskStatus.discrepancy;
@@ -408,9 +426,20 @@ class _EmpReceiptScreenState extends State<EmpReceiptScreen> {
                 });
                 widget.onTaskUpdated();
                 Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Discrepancy flagged and logged.'), backgroundColor: AppColors.accent),
-                );
+                try {
+                  await ApiService.reportIssue({
+                    'taskId': task.id,
+                    'type': 'DISCREPANCY',
+                    'description': ctrl.text,
+                    'expectedQuantity': task.expectedQuantity,
+                    'actualQuantity': task.receivedQuantity,
+                  });
+                } catch (_) {}
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Discrepancy flagged and logged.'), backgroundColor: AppColors.accent),
+                  );
+                }
               },
               style: FilledButton.styleFrom(backgroundColor: AppColors.error),
               child: const Text('Submit Flag'),

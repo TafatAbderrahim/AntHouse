@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  EMPLOYEE STORAGE ASSIGNMENT — §7.1 step 4
@@ -225,12 +226,18 @@ class _EmpStorageScreenState extends State<EmpStorageScreen> {
                   if (task.status == OpTaskStatus.pending)
                     Expanded(
                       child: FilledButton.icon(
-                        onPressed: () {
+                        onPressed: () async {
                           setState(() {
                             task.status = OpTaskStatus.inProgress;
                             task.startedAt = DateTime.now();
                           });
                           widget.onTaskUpdated();
+                          try {
+                            await ApiService.startOperation({
+                              'taskId': task.id,
+                              'type': 'TRANSFER',
+                            });
+                          } catch (_) {}
                         },
                         icon: const Icon(Icons.play_arrow_rounded, size: 18),
                         label: const Text('Start Transfer'),
@@ -279,18 +286,29 @@ class _EmpStorageScreenState extends State<EmpStorageScreen> {
     );
   }
 
-  void _validateStorage(OperationalTask task) {
+  void _validateStorage(OperationalTask task) async {
+    try {
+      await ApiService.executeLine({
+        'taskId': task.id,
+        'productId': task.productId,
+        'quantity': task.expectedQuantity,
+        'type': 'TRANSFER',
+      });
+      await ApiService.completeOperation(task.id);
+    } catch (_) {}
     setState(() {
       task.status = OpTaskStatus.completed;
       task.completedAt = DateTime.now();
       task.receivedQuantity = task.expectedQuantity;
     });
     widget.onTaskUpdated();
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Transfer ${task.orderRef} completed — stored at ${task.toLocation}.'),
-        backgroundColor: AppColors.success,
-      ),
-    );
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Transfer ${task.orderRef} completed — stored at ${task.toLocation}.'),
+          backgroundColor: AppColors.success,
+        ),
+      );
+    }
   }
 }

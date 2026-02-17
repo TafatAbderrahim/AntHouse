@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'dart:async';
 import '../models/admin_data.dart';
-import '../models/operations_data.dart';
+import '../services/api_service.dart';
 import 'sup_dashboard_screen.dart';
 import 'sup_ai_review_screen.dart';
 import 'sup_incidents_screen.dart';
@@ -279,7 +279,10 @@ class _SupervisorShellNewState extends State<SupervisorShellNew> with WidgetsBin
         ListTile(
           leading: const Icon(Icons.logout, color: Colors.white70, size: 20),
           title: const Text('Logout', style: TextStyle(color: Colors.white70, fontSize: 14)),
-          onTap: () => Navigator.of(context).pushReplacementNamed('/login'),
+          onTap: () {
+            ApiService.logout();
+            Navigator.of(context).pushReplacementNamed('/login');
+          },
         ),
         const SizedBox(height: 8),
       ],

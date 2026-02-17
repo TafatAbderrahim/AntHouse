@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 import 'dashboard_screen.dart';
 import 'warehouse_screen.dart';
 import 'users_screen.dart';
@@ -9,6 +10,12 @@ import 'overrides_screen.dart';
 import 'audit_logs_screen.dart';
 import 'system_integrity_screen.dart';
 import 'profile_screen.dart';
+import 'tasks_screen.dart';
+import 'orders_screen.dart';
+import 'chariots_screen.dart';
+import 'locations_screen.dart';
+import 'stock_screen.dart';
+import 'reports_screen.dart';
 
 class AdminShell extends StatefulWidget {
   const AdminShell({super.key});
@@ -29,6 +36,12 @@ class _AdminShellState extends State<AdminShell> {
     _NavItem(Icons.compare_arrows_rounded, 'Overrides'),
     _NavItem(Icons.receipt_long_rounded, 'Audit Logs'),
     _NavItem(Icons.security_rounded, 'System Integrity'),
+    _NavItem(Icons.task_alt_rounded, 'Tasks'),
+    _NavItem(Icons.shopping_cart_rounded, 'Orders'),
+    _NavItem(Icons.local_shipping_rounded, 'Chariots'),
+    _NavItem(Icons.place_rounded, 'Locations'),
+    _NavItem(Icons.analytics_rounded, 'Stock'),
+    _NavItem(Icons.assessment_rounded, 'Reports'),
   ];
 
   late final List<Widget> _screens = [
@@ -40,6 +53,12 @@ class _AdminShellState extends State<AdminShell> {
     const OverridesScreen(),
     const AuditLogsScreen(),
     const SystemIntegrityScreen(),
+    const TasksScreen(),
+    const OrdersScreen(),
+    const ChariotsScreen(),
+    const LocationsScreen(),
+    const StockScreen(),
+    const ReportsScreen(),
     const ProfileScreen(),
   ];
 
@@ -106,7 +125,9 @@ class _AdminShellState extends State<AdminShell> {
     final titles = [
       'Dashboard', 'Users', 'Warehouse',
       'Inventory', 'AI Analytics', 'Overrides',
-      'Audit Logs', 'System Integrity', 'Profile',
+      'Audit Logs', 'System Integrity',
+      'Tasks', 'Orders', 'Chariots',
+      'Locations', 'Stock', 'Reports', 'Profile',
     ];
     final titleSize = isPhone ? 20.0 : 28.0;
     final barHeight = isPhone ? 60.0 : 72.0;
@@ -195,13 +216,15 @@ class _AdminShellState extends State<AdminShell> {
             ),
           SizedBox(width: isPhone ? 4 : 8),
           InkWell(
-            onTap: () => _goTo(8), // Profile
+            onTap: () => _goTo(14), // Profile
             borderRadius: BorderRadius.circular(24),
             child: CircleAvatar(
               radius: isPhone ? 18 : 24,
               backgroundColor: AppColors.primaryDark,
               child: Text(
-                'A',
+                ApiService.currentFirstName?.isNotEmpty == true
+                    ? ApiService.currentFirstName![0].toUpperCase()
+                    : 'A',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -233,7 +256,7 @@ class _AdminShellState extends State<AdminShell> {
           ),
           const Divider(
               color: Colors.white24, height: 1, indent: 16, endIndent: 16),
-          _buildSidebarItem(8, icon: Icons.person_rounded, label: 'Profile'),
+          _buildSidebarItem(14, icon: Icons.person_rounded, label: 'Profile'),
           _buildSidebarLogout(),
           // BMS Sponsor - BIG
           const SizedBox(height: 16),
@@ -333,7 +356,10 @@ class _AdminShellState extends State<AdminShell> {
         borderRadius: BorderRadius.circular(12),
         child: InkWell(
           borderRadius: BorderRadius.circular(12),
-          onTap: () => Navigator.of(context).pushReplacementNamed('/login'),
+          onTap: () {
+            ApiService.logout();
+            Navigator.of(context).pushReplacementNamed('/login');
+          },
           hoverColor: AppColors.error.withValues(alpha: 0.15),
           child: const Padding(
             padding: EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -418,8 +444,8 @@ class _AdminShellState extends State<AdminShell> {
               icon: Icon(Icons.person_rounded,
                   size: 26,
                   color:
-                      _selectedIndex == 8 ? Colors.white : Colors.white60),
-              onPressed: () => _goTo(8),
+                      _selectedIndex == 14 ? Colors.white : Colors.white60),
+              onPressed: () => _goTo(14),
             ),
           ),
           Tooltip(
@@ -427,8 +453,10 @@ class _AdminShellState extends State<AdminShell> {
             child: IconButton(
               icon:
                   const Icon(Icons.logout_rounded, size: 26, color: Colors.white60),
-              onPressed: () =>
-                  Navigator.of(context).pushReplacementNamed('/login'),
+              onPressed: () {
+                  ApiService.logout();
+                  Navigator.of(context).pushReplacementNamed('/login');
+              },
             ),
           ),
           const SizedBox(height: 16),
@@ -456,7 +484,7 @@ class _AdminShellState extends State<AdminShell> {
             ),
             const Divider(
                 color: Colors.white24, height: 1, indent: 16, endIndent: 16),
-            _buildSidebarItem(8, icon: Icons.person_rounded, label: 'Profile'),
+            _buildSidebarItem(14, icon: Icons.person_rounded, label: 'Profile'),
             _buildSidebarLogout(),
             const SizedBox(height: 16),
           ],

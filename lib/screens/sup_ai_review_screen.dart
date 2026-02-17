@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  SUPERVISOR AI REVIEW — §7.2 step 3
@@ -26,8 +27,32 @@ class _SupAiReviewScreenState extends State<SupAiReviewScreen>
   @override
   void initState() {
     super.initState();
-    _decisions = MockOperationsData.generateAiDecisions();
+    _decisions = [];
     _tabCtrl = TabController(length: 3, vsync: this);
+    _fetchFromApi();
+  }
+
+  Future<void> _fetchFromApi() async {
+    try {
+      final list = await ApiService.getAiDecisions();
+      if (!mounted || list.isEmpty) return;
+      setState(() {
+        _decisions = list.map<AiOperationalDecision>((d) => AiOperationalDecision(
+          id: d['id']?.toString() ?? '',
+          orderType: OrderType.preparation,
+          orderRef: d['reference'] ?? d['orderRef'] ?? '',
+          description: d['description'] ?? d['recommendation'] ?? '',
+          suggestedAction: d['suggestedAction'] ?? d['decision'] ?? '',
+          fromLocation: d['fromLocation'] ?? '',
+          toLocation: d['toLocation'] ?? '',
+          confidence: (d['confidence'] ?? 0.85).toDouble(),
+          reasoning: d['reasoning'] ?? d['explanation'] ?? '',
+          status: (d['status'] ?? 'pending').toString().toLowerCase(),
+          overrideJustification: d['overrideReason'],
+          overriddenBy: d['overriddenBy'],
+        )).toList();
+      });
+    } catch (_) {}
   }
 
   @override
@@ -327,11 +352,22 @@ class _SupAiReviewScreenState extends State<SupAiReviewScreen>
     );
   }
 
-  void _approve(AiOperationalDecision d) {
-    setState(() => d.status = 'approved');
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${d.orderRef} approved.'), backgroundColor: AppColors.success),
-    );
+  void _approve(AiOperationalDecision d) async {
+    try {
+      await ApiService.approveAiDecision(d.id);
+      setState(() => d.status = 'approved');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${d.orderRef} approved.'), backgroundColor: AppColors.success),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error approving: $e'), backgroundColor: AppColors.error),
+        );
+      }
+    }
   }
 
   void _override(AiOperationalDecision d) {
@@ -372,7 +408,7 @@ class _SupAiReviewScreenState extends State<SupAiReviewScreen>
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
             FilledButton(
-              onPressed: () {
+              onPressed: () async {
                 final text = justCtrl.text.trim();
                 if (text.isEmpty) {
                   ScaffoldMessenger.of(context).showSnackBar(
@@ -380,19 +416,33 @@ class _SupAiReviewScreenState extends State<SupAiReviewScreen>
                   );
                   return;
                 }
-                setState(() {
-                  d.status = 'overridden';
-                  d.overrideJustification = text;
-                  d.overriddenBy = 'Supervisor Karim';
-                  d.overriddenAt = DateTime.now();
-                  if (altLocCtrl.text.trim() != d.toLocation) {
-                    d.overrideJustification = '$text\nNew location: ${altLocCtrl.text.trim()}';
+                final newDecision = altLocCtrl.text.trim() != d.toLocation
+                    ? 'Relocate to ${altLocCtrl.text.trim()}'
+                    : 'Override applied';
+                try {
+                  await ApiService.overrideAiDecision(d.id, text, newDecision);
+                  setState(() {
+                    d.status = 'overridden';
+                    d.overrideJustification = text;
+                    d.overriddenBy = ApiService.currentFullName.isNotEmpty ? ApiService.currentFullName : 'Supervisor';
+                    d.overriddenAt = DateTime.now();
+                    if (altLocCtrl.text.trim() != d.toLocation) {
+                      d.overrideJustification = '$text\nNew location: ${altLocCtrl.text.trim()}';
+                    }
+                  });
+                  if (mounted) Navigator.pop(context);
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('${d.orderRef} overridden — logged.'), backgroundColor: AppColors.accent),
+                    );
                   }
-                });
-                Navigator.pop(context);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('${d.orderRef} overridden — logged.'), backgroundColor: AppColors.accent),
-                );
+                } catch (e) {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
+                    );
+                  }
+                }
               },
               style: FilledButton.styleFrom(backgroundColor: AppColors.accent),
               child: const Text('Confirm Override'),

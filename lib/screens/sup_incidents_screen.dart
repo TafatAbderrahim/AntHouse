@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 
 // ═══════════════════════════════════════════════════════════════
 //  SUPERVISOR INCIDENTS — §7.2 step 5
@@ -24,7 +25,26 @@ class _SupIncidentsScreenState extends State<SupIncidentsScreen> {
   @override
   void initState() {
     super.initState();
-    _incidents = MockOperationsData.generateIncidents();
+    _incidents = [];
+    _fetchFromApi();
+  }
+
+  Future<void> _fetchFromApi() async {
+    try {
+      final list = await ApiService.getUnresolvedDiscrepancies();
+      if (!mounted || list.isEmpty) return;
+      setState(() {
+        _incidents = list.map<Incident>((d) => Incident(
+          id: d['id']?.toString() ?? '',
+          type: IncidentType.other,
+          description: d['description'] ?? d['issueDescription'] ?? '',
+          location: d['location'] ?? '',
+          floor: d['floor'] ?? 0,
+          status: (d['resolved'] == true) ? 'resolved' : 'open',
+          reportedBy: d['reportedBy'] ?? 'System',
+        )).toList();
+      });
+    } catch (_) {}
   }
 
   List<Incident> get _filtered {

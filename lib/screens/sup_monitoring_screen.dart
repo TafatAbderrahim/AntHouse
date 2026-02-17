@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
 import '../models/operations_data.dart';
+import '../services/api_service.dart';
 import 'warehouse_screen.dart';
 
 // ═══════════════════════════════════════════════════════════════
@@ -25,8 +26,43 @@ class _SupMonitoringScreenState extends State<SupMonitoringScreen> {
   @override
   void initState() {
     super.initState();
-    _workers = MockOperationsData.generateLiveWorkers();
-    _chariots = MockOperationsData.generateChariots();
+    _workers = [];
+    _chariots = [];
+    _fetchFromApi();
+  }
+
+  Future<void> _fetchFromApi() async {
+    try {
+      final empList = await ApiService.getEmployeeStatus();
+      if (!mounted) return;
+      if (empList.isNotEmpty) {
+        setState(() {
+          _workers = empList.map<LiveWorker>((e) => LiveWorker(
+            id: e['id']?.toString() ?? '',
+            name: e['name'] ?? e['fullName'] ?? '',
+            role: (e['role'] ?? 'employee').toString().toLowerCase(),
+            floor: e['floor'] ?? 0,
+            x: (e['x'] ?? 10.0).toDouble(),
+            y: (e['y'] ?? 10.0).toDouble(),
+            currentTask: e['currentTask']?.toString() ?? '',
+            status: e['status'] ?? 'active',
+            color: const Color(0xFF2196F3),
+          )).toList();
+        });
+      }
+      final chrList = await ApiService.getChariotStatus();
+      if (!mounted) return;
+      if (chrList.isNotEmpty) {
+        setState(() {
+          _chariots = chrList.map<Chariot>((c) => Chariot(
+            id: c['id']?.toString() ?? '',
+            code: c['code'] ?? '',
+            inUse: c['status'] == 'IN_USE' || c['inUse'] == true,
+            assignedEmployeeId: c['assignedTo']?.toString() ?? '',
+          )).toList();
+        });
+      }
+    } catch (_) {}
   }
 
   @override

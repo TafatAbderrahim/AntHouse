@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/admin_data.dart';
+import '../services/api_service.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -48,45 +49,49 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 800));
 
-    final user = MockAuthService.authenticate(identifier, password);
+    try {
+      final result = await ApiService.login(identifier, password);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (user == null) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Invalid credentials')),
-      );
-      return;
-    }
-
-    if (!user.canAuthenticate) {
-      setState(() => _loading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Account is disabled or locked')),
-      );
-      return;
-    }
-
-    user.lastLogin = DateTime.now();
-
-    if (mounted) {
-      // Route by role — §7.1 Employee, §7.2 Supervisor, §7.3 Admin
-      switch (user.role) {
-        case 'admin':
-          Navigator.of(context).pushReplacementNamed('/admin');
-          break;
-        case 'supervisor':
-          Navigator.of(context).pushReplacementNamed('/supervisor');
-          break;
-        case 'employee':
-          Navigator.of(context).pushReplacementNamed('/employee');
-          break;
-        default:
-          Navigator.of(context).pushReplacementNamed('/admin');
+      if (result['success'] != true) {
+        setState(() => _loading = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(result['message'] ?? 'Invalid credentials')),
+        );
+        return;
       }
+
+      final role = ApiService.currentRole?.toLowerCase() ?? 'employee';
+
+      if (mounted) {
+        switch (role) {
+          case 'admin':
+            Navigator.of(context).pushReplacementNamed('/admin');
+            break;
+          case 'supervisor':
+            Navigator.of(context).pushReplacementNamed('/supervisor');
+            break;
+          case 'employee':
+            Navigator.of(context).pushReplacementNamed('/employee');
+            break;
+          default:
+            Navigator.of(context).pushReplacementNamed('/admin');
+        }
+      }
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(e.message)),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Cannot reach server: $e')),
+      );
     }
   }
 
